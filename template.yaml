@@ -3,16 +3,46 @@ Transform: AWS::Serverless-2016-10-31
 Description: >
   orders-api
 
+Globals:
+  Function:
+    Runtime: python3.9
+    Environment:
+      Variables:
+        ORDERS_TABLE: !Ref OrdersTable
+
 Resources:
-  HelloWorldFunction:
+  OrdersTable:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      PrimaryKey:
+        Name: id
+        Type: Number
+
+  CreateOrderFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
       CodeUri: orders_api/
       Handler: create.lambda_handler
-      Runtime: python3.9
       Events:
         CreateOrders:
           Type: Api
           Properties:
             Path: /orders
             Method: POST
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref OrdersTable
+  ReadOrderFunction:
+      Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+      Properties:
+        CodeUri: orders_api/
+        Handler: read.lambda_handler
+        Events:
+          ReadOrders:
+            Type: Api
+            Properties:
+              Path: /orders/{id}
+              Method: GET
+        Policies:
+          - DynamoDBReadPolicy:
+              TableName: !Ref OrdersTable

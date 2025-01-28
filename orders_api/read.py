@@ -4,15 +4,30 @@ import os
 from boto3.dynamodb.conditions import Key
 
 def lambda_handler(event, context):
-  order = json.loads(event['body'])
   dynamodb = boto3.resource('dynamodb')
   table_name = os.environ.get('ORDERS_TABLE')
   table = dynamodb.Table(table_name)
-  order_id = int(event['pathParameters']['id'])
-  response = table.query(KeyConditionExpression=Key('id').eq(order_id))
+  order_id = event['pathParameters']['id']
+  path_params = event.get('pathParameters', {})
+  order_id = path_params.get('id')
 
-  return {
-    'statusCode': 200,
-    'headers': {},
-    'body': json.dumps(response['Items'])
-  }
+  try:
+      order_id = int(order_id)
+      response = table.query(KeyConditionExpression=Key('id').eq(order_id))
+
+      return {
+          "statusCode": 200,
+          "body": response['Items']
+      }
+
+  except ValueError:
+      return {
+          "statusCode": 400,
+          "body": "Invalid 'id' parameter. It must be a number."
+      }
+
+  except Exception as e:
+      return {
+          "statusCode": 500,
+          "body": f"Internal server error: {str(e)}"
+      }

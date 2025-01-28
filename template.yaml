@@ -33,16 +33,26 @@ Resources:
         - DynamoDBCrudPolicy:
             TableName: !Ref OrdersTable
   ReadOrderFunction:
-      Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
-      Properties:
-        CodeUri: orders_api/
-        Handler: read.lambda_handler
-        Events:
-          ReadOrders:
-            Type: Api
-            Properties:
-              Path: /orders/{id}
-              Method: GET
-        Policies:
-          - DynamoDBReadPolicy:
-              TableName: !Ref OrdersTable
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: orders_api/
+      Handler: read.lambda_handler
+      Events:
+        ReadOrders:
+          Type: Api
+          Properties:
+            Path: /orders/{id}
+            Method: GET
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref OrdersTable
+Outputs:
+  CreateOrdersAPI:
+    Description: "API Gateway endpoint url for creating orders"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/orders"
+  CreateOrderFunction:
+    Description: "Create Order function ARN"
+    Value: !GetAtt  CreateOrderFunction.Arn
+  CreateOrderFunctionIamRole:
+    Description: "Create Order function IAM Role ARN"
+    Value: !GetAtt  CreateOrderFunctionRole.Arn
